@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mcp-drop demo</title>
+  <style>
+    :root {
+      --demo-radius: 8px;
+      --demo-radius-pill: 24px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #080809;
+      color: #e0e0e0;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      padding: 40px 40px 120px;
+    }
+    .page {
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-top: 24px;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #0f0f10; border: 1px solid #1e1e22;
+      padding: 6px 16px; border-radius: var(--demo-radius-pill);
+      font-size: 12px; color: #555;
+      letter-spacing: .1em; text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    .dot { width: 6px; height: 6px; border-radius: var(--demo-radius); background: #e8622a; box-shadow: 0 0 8px #e8622a; }
+    h1 { font-size: 48px; font-weight: 800; letter-spacing: -.04em; line-height: 1.1; margin-bottom: 20px; color: #f0f0f0; }
+    h1 span { color: #e8622a; }
+    p { font-size: 16px; color: #555; line-height: 1.7; text-align: center; margin-bottom: 32px; max-width: 700px; }
+    .code-block { background: #0f0f10; border: 1px solid #1e1e22; border-radius: var(--demo-radius); padding: 20px 24px; width: 100%; max-width: 480px; margin-bottom: 40px; }
+    .code-label { font-size: 11px; color: #333; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px; }
+    pre { font-size: 13px; line-height: 1.7; color: #888; overflow: auto; text-align: left; }
+    .features { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; }
+    .pill { background: #0f0f10; border: 1px solid #1e1e22; padding: 6px 14px; border-radius: var(--demo-radius-pill); font-size: 12px; color: #555; }
+    .hint { font-size: 13px; color: #2a2a2e; margin-top: 16px; margin-bottom: 0; }
+    .use-cases {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    .use-case {
+      background: #0c0c0d;
+      border: 1px solid #1e1e22;
+      border-radius: var(--demo-radius);
+      padding: 22px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, .25);
+    }
+    .use-case-label {
+      font-size: 11px;
+      color: #e8622a;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .use-case h2 {
+      font-size: 22px;
+      color: #f0f0f0;
+      letter-spacing: -.03em;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .use-case p {
+      margin-bottom: 0;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      max-width: none;
+    }
+    .prereqs {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+    }
+    .prereqs-header h2 {
+      font-size: 28px;
+      color: #f0f0f0;
+      letter-spacing: -.03em;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .prereqs-header p {
+      margin-bottom: 0;
+      max-width: none;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+    }
+    .prereq-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      width: 100%;
+    }
+    .prereq-card {
+      background: #0c0c0d;
+      border: 1px solid #1e1e22;
+      border-radius: var(--demo-radius);
+      padding: 22px;
+    }
+    .prereq-card h3 {
+      font-size: 18px;
+      color: #f0f0f0;
+      letter-spacing: -.03em;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .prereq-card p {
+      margin-bottom: 0;
+      text-align: center;
+      max-width: none;
+      font-size: 14px;
+      color: #666;
+    }
+    .prereq-card a {
+      color: #e8622a;
+      text-decoration: none;
+    }
+    .prereq-card a:hover {
+      text-decoration: underline;
+    }
+    .demo-frame {
+      width: 100%;
+      height: 760px;
+      position: relative;
+      border: 1px solid #1e1e22;
+      border-radius: var(--demo-radius);
+      overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, .35);
+    }
+    .demo-frame mcp-drop {
+      display: block;
+      height: 100%;
+      min-height: 0;
+    }
+    .site-footer {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 8px 0 0;
+    }
+    .site-footer-inner {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #555;
+    }
+    .site-footer-inner a {
+      color: #888;
+      text-decoration: none;
+    }
+    .site-footer-inner a:hover {
+      color: #e0e0e0;
+    }
+    .site-footer-separator {
+      color: #333;
+    }
+    @media (max-width: 960px) {
+      .use-cases {
+        grid-template-columns: 1fr;
+      }
+      .prereq-grid {
+        grid-template-columns: 1fr;
+      }
+      .demo-frame {
+        height: 640px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="badge"><div class="dot"></div>Open Source · MIT License</div>
+      <h1>mcp<span>drop</span></h1>
+      <p>The fastest way to add an MCP-powered AI copilot to any web app.</p>
+      <div class="code-block">
+        <div class="code-label">Usage</div>
+        <pre>&lt;!-- 1. Start the bridge --&gt;
+&lt;!-- 2. Drop this in your app --&gt;
+&lt;script src="@mcp-drop/core"&gt;&lt;/script&gt;
+
+&lt;mcp-drop
+  mcp-servers='[{"name":"bridge",
+    "url":"http://localhost:3333"}]'
+  persist-key
+&gt;&lt;/mcp-drop&gt;</pre>
+      </div>
+      <div class="features">
+        <div class="pill">Chat UI</div>
+        <div class="pill">Tool Use</div>
+        <div class="pill">MCP Servers</div>
+        <div class="pill">API Key Mgmt</div>
+        <div class="pill">Web Component</div>
+        <div class="pill">Zero Dependencies</div>
+      </div>
+      <p class="hint">👉 Start the bridge: <code style="color:#e8622a">npx @mcp-drop/bridge</code> then connect below</p>
+    </section>
+
+    <section class="use-cases">
+      <article class="use-case">
+        <div class="use-case-label">Use Case 01</div>
+        <h2>In-app AI Copilot</h2>
+        <p>Add Claude directly inside your SaaS product and keep users inside your app while they work.</p>
+      </article>
+      <article class="use-case">
+        <div class="use-case-label">Use Case 02</div>
+        <h2>Connect Any Tool</h2>
+        <p>Filesystem, databases, APIs, design tools, or internal systems. If it has an MCP server, it plugs in.</p>
+      </article>
+      <article class="use-case">
+        <div class="use-case-label">Use Case 03</div>
+        <h2>Ship in Minutes</h2>
+        <p>One script tag. No backend. No lock-in. Drop the component into your app and start wiring tools.</p>
+      </article>
+    </section>
+
+    <section class="prereqs">
+      <div class="prereqs-header">
+        <h2>Before you start</h2>
+        <p>Set up the two pieces you need locally before testing the demo.</p>
+      </div>
+      <div class="prereq-grid">
+        <article class="prereq-card">
+          <h3>Anthropic API Key</h3>
+          <p>Get one free at <a href="https://console.anthropic.com" target="_blank" rel="noreferrer">console.anthropic.com</a>. Not Claude Pro, you need an API key.</p>
+        </article>
+        <article class="prereq-card">
+          <h3>Node.js 18+</h3>
+          <p>Required to run <code>@mcp-drop/bridge</code> locally.</p>
+        </article>
+      </div>
+    </section>
+
+    <div class="demo-frame">
+      <mcp-drop
+        mode="fullpage"
+        title="mcp-drop"
+        placeholder="Type a message..."
+        mcp-servers='[{"name":"bridge","url":"http://localhost:3333"}]'
+        history
+        persist-key
+      ></mcp-drop>
+    </div>
+
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <a href="https://github.com/moisedav/mcp-drop" target="_blank" rel="noreferrer">GitHub</a>
+        <span class="site-footer-separator">·</span>
+        <a href="https://x.com/moisegdesign" target="_blank" rel="noreferrer">@moise</a>
+      </div>
+    </footer>
+  </div>
+
+  <script type="module" src="./mcp-drop.js"></script>
+
+  <mcp-drop
+    mode="widget"
+    title="mcp-drop"
+    system-prompt="You are a helpful assistant."
+    persist-key
+  ></mcp-drop>
+</body>
+</html>
