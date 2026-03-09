@@ -11,7 +11,7 @@
 
 ## Preview
 
-> Add a screenshot here once the GitHub Pages demo is live
+![mcp-drop demo](./docs/preview.png)
 
 ## What is mcp-drop?
 
