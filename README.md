@@ -2,8 +2,12 @@
 
 > Connect Claude to anything. Drop it anywhere.
 
+**🚀 [Try the live demo →](https://moisedav.github.io/mcp-drop)**
+
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![npm](https://img.shields.io/badge/npm-%40mcp-drop%2Fcore-orange)
+[![npm](https://img.shields.io/npm/v/@mcp-drop/core?color=e8622a)](https://www.npmjs.com/package/@mcp-drop/core)
+[![demo](https://img.shields.io/badge/demo-live-green)](https://moisedav.github.io/mcp-drop)
+[![GitHub stars](https://img.shields.io/github/stars/moisedav/mcp-drop?style=social)](https://github.com/moisedav/mcp-drop)
 
 ## What is mcp-drop?
 
