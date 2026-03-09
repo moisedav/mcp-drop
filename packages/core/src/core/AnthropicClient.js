@@ -2,7 +2,7 @@ import APIKeyManager from './APIKeyManager.js';
 
 const SYSTEM_PROMPT_APPEND = 'Be concise. When tools return large data (XML, JSON, HTML), extract only what is needed for the user\'s request. Never repeat large data blocks back to the user. If you need specific details, call the tool again with more specific parameters. When the user asks you to modify code, content, or design, inspect only the minimum necessary context and then act. Do not narrate your internal search process to the user. If you already have enough context to make the change, make it directly. For edit requests, prefer one focused inspection and then perform the edit immediately.';
 const DEFAULT_SYSTEM_PROMPT = `You are a helpful AI assistant with access to external tools via MCP (Model Context Protocol). Use the available tools when needed to help the user accomplish their tasks. Be concise and efficient.\n\n${SYSTEM_PROMPT_APPEND}`;
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
+const ANTHROPIC_BASE_URL = 'https://api.anthropic.com';
 const ANTHROPIC_MODEL = 'claude-sonnet-4-20250514';
 const MAX_TOKENS = 4096;
 const MAX_TOOL_RESULT_HINT_CHARS = 3000;
@@ -79,13 +79,31 @@ async function extractResponseError(response) {
   return createFriendlyError(err?.error?.message || `HTTP ${status}`, status);
 }
 
-function buildHeaders(key) {
+function buildHeaders({ key, useProxy }) {
+  if (useProxy) {
+    return {
+      'Content-Type': 'application/json'
+    };
+  }
+
   return {
     'Content-Type': 'application/json',
     'x-api-key': key,
     'anthropic-version': '2023-06-01',
     'anthropic-dangerous-direct-browser-access': 'true'
   };
+}
+
+function normalizeBaseUrl(baseUrl) {
+  if (typeof baseUrl !== 'string' || !baseUrl.trim()) {
+    return ANTHROPIC_BASE_URL;
+  }
+
+  return baseUrl.trim().replace(/\/+$/, '');
+}
+
+function buildApiUrl(baseUrl) {
+  return `${normalizeBaseUrl(baseUrl)}/v1/messages`;
 }
 
 function buildOptimizedSystemPrompt(systemPrompt = DEFAULT_SYSTEM_PROMPT) {
@@ -471,17 +489,22 @@ async function waitForRateLimitRetry(onRetryCountdown) {
   }
 }
 
-async function requestAnthropic(payload, { onRetryCountdown } = {}) {
-  const key = APIKeyManager.get({ includeStorage: true });
-  if (!key) throw createFriendlyError('Your API key seems invalid. Check Settings to update it.', 401);
+async function requestAnthropic(payload, { onRetryCountdown, baseUrl } = {}) {
+  const endpoint = buildApiUrl(baseUrl);
+  const useProxy = normalizeBaseUrl(baseUrl) !== ANTHROPIC_BASE_URL;
+  const key = useProxy ? null : APIKeyManager.get({ includeStorage: true });
+
+  if (!useProxy && !key) {
+    throw createFriendlyError('Your API key seems invalid. Check Settings to update it.', 401);
+  }
 
   let shouldRetry = true;
 
   while (true) {
     try {
-      const response = await fetch(ANTHROPIC_API_URL, {
+      const response = await fetch(endpoint, {
         method: 'POST',
-        headers: buildHeaders(key),
+        headers: buildHeaders({ key, useProxy }),
         body: JSON.stringify(payload)
       });
 
@@ -580,7 +603,7 @@ async function consumeSseStream(response, onEvent) {
 }
 
 const AnthropicClient = {
-  async send({ messages, tools = [], systemPrompt = DEFAULT_SYSTEM_PROMPT, onRetryCountdown } = {}) {
+  async send({ messages, tools = [], systemPrompt = DEFAULT_SYSTEM_PROMPT, onRetryCountdown, baseUrl } = {}) {
     try {
       const optimizedConversation = optimizeMessagesForApi(messages, systemPrompt);
       const response = await requestAnthropic(
@@ -590,7 +613,7 @@ const AnthropicClient = {
           systemPrompt,
           stream: false
         }),
-        { onRetryCountdown }
+        { onRetryCountdown, baseUrl }
       );
 
       return (await safeJson(response)) || {};
@@ -604,7 +627,8 @@ const AnthropicClient = {
     tools = [],
     systemPrompt = DEFAULT_SYSTEM_PROMPT,
     onTextDelta,
-    onRetryCountdown
+    onRetryCountdown,
+    baseUrl
   } = {}) {
     try {
       const optimizedConversation = optimizeMessagesForApi(messages, systemPrompt);
@@ -615,7 +639,7 @@ const AnthropicClient = {
           systemPrompt,
           stream: true
         }),
-        { onRetryCountdown }
+        { onRetryCountdown, baseUrl }
       );
 
       const contentType = response.headers.get('content-type') || '';
@@ -657,7 +681,8 @@ const AnthropicClient = {
     onTextDelta,
     onToolCall,
     onToolApproval,
-    onRetryCountdown
+    onRetryCountdown,
+    baseUrl
   }) {
     try {
       const allTools = tools.map((tool) => ({
@@ -683,6 +708,7 @@ const AnthropicClient = {
           tools: allTools,
           systemPrompt,
           onRetryCountdown,
+          baseUrl,
           onTextDelta: (delta) => {
             if (!delta) return;
             roundAssistantText += delta;

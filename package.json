@@ -11,6 +11,7 @@
     "dev": "npm run dev --workspace=packages/core",
     "build": "npm run build --workspace=packages/core",
     "bridge": "npm run start --workspace=packages/bridge",
+    "proxy": "npm run start --workspace=packages/proxy",
     "test": "npm run test --workspace=packages/core"
   },
   "keywords": ["mcp", "claude", "anthropic", "ai", "chat"],

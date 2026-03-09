@@ -1,0 +1,18 @@
+{
+  "name": "@mcp-drop/proxy",
+  "version": "0.1.0",
+  "description": "Proxy server for @mcp-drop/core — keeps your Anthropic API key secure",
+  "main": "server.js",
+  "bin": {
+    "mcp-drop-proxy": "./server.js"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "cors": "^2.8.5"
+  },
+  "license": "MIT"
+}

@@ -52,10 +52,11 @@ No Claude Desktop. No Cursor. Just your app.
 |---|---|
 | [`@mcp-drop/core`](./packages/core) | Embeddable Web Component chat UI |
 | [`@mcp-drop/bridge`](./packages/bridge) | Local bridge server for MCP connections |
+| [`@mcp-drop/proxy`](./packages/proxy) | Lightweight Anthropic proxy that keeps the API key off the client |
 
 ## Prerequisites
 
-- **Anthropic API key** — Get one at [console.anthropic.com](https://console.anthropic.com) (not Claude Pro — you need an API key)
+- **Anthropic API key** — Get one at [console.anthropic.com](https://console.anthropic.com) if you are calling Anthropic directly from the browser
 - **Node.js 18+** — Required to run `@mcp-drop/bridge` locally
 
 ## Quick Start
@@ -217,6 +218,7 @@ npx @mcp-drop/bridge \
 | `mode` | `widget` \| `fullpage` | `widget` | Display mode |
 | `title` | string | `mcp-drop` | Chat title |
 | `system-prompt` | string | — | Custom system prompt |
+| `api-proxy` | URL string | — | Optional proxy base URL for forwarding Anthropic requests server-side. |
 | `mcp-servers` | JSON string | — | MCP servers to connect |
 | `placeholder` | string | `Type a message...` | Input placeholder |
 | `persist-key` | boolean | `false` | Save API key in localStorage |

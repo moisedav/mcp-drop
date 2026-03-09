@@ -50,14 +50,14 @@ import "@mcp-drop/core";
 ## How It Works
 
 1. The user types into `<mcp-drop>`.
-2. The component sends messages directly from the browser to the Anthropic Messages API.
+2. The component sends messages directly to Anthropic, or through an `api-proxy` endpoint if configured.
 3. The component fetches tool definitions from the configured MCP URLs.
 4. If Claude requests a tool, the component calls that tool through the active MCP transport.
 5. The final assistant response is rendered in the chat UI.
 
 ## Requirements
 
-- An Anthropic API key entered by the user in the UI.
+- An Anthropic API key entered by the user in the UI, or an `api-proxy` endpoint that forwards requests server-side.
 - A running MCP endpoint, such as a bridge at `http://localhost:3333` or a remote HTTP/SSE MCP server.
 - MCP URLs passed through the `mcp-servers` attribute as JSON.
 
@@ -119,6 +119,7 @@ The package registers this tag globally:
 | `title` | string | `mcp-drop` | Title shown in the header. |
 | `placeholder` | string | `Type a message...` | Placeholder for the input box. |
 | `system-prompt` | string | `You are a helpful AI assistant with access to external tools via MCP (Model Context Protocol). Use the available tools when needed to help the user accomplish their tasks. Be concise and efficient.` | System prompt sent to Claude. |
+| `api-proxy` | URL string | none | Optional base URL for a proxy that forwards `/v1/messages` requests to Anthropic. |
 | `mcp-servers` | JSON string | none | Array of MCP endpoints in the form `[{"name":"bridge","url":"http://localhost:3333"}]`. |
 | `persist-key` | boolean attribute | `false` | If present, stores the Anthropic API key in `localStorage`. |
 | `history` | boolean attribute | `false` | If present, enables conversation persistence and the conversation sidebar in full-page mode. |
@@ -182,8 +183,8 @@ const reply = await AnthropicClient.sendWithTools({
 Current implementation details:
 
 - Model: `claude-sonnet-4-20250514`
-- Max output tokens: `1024`
-- Requests are made directly from the browser
+- Max output tokens: `4096`
+- Requests are made directly from the browser unless `api-proxy` is set
 
 ### `MCPConnector`
 

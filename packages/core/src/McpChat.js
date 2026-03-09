@@ -1066,6 +1066,8 @@ class McpChat extends HTMLElement {
     this._serverConfigSignature = '[]';
     this._serverDraft = this._getDefaultServerDraft();
     this._alwaysAllowedTools = this._loadToolApprovalPreferences();
+    this._hasApiAccess = false;
+    this._apiProxy = '';
     this._eventsAttached = false;
     this._boundClickHandler = (event) => this._handleClick(event);
     this._boundInputHandler = (event) => this._handleInput(event);
@@ -1075,7 +1077,7 @@ class McpChat extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['title', 'placeholder', 'system-prompt', 'mcp-servers', 'persist-key', 'mode', 'history'];
+    return ['title', 'placeholder', 'system-prompt', 'mcp-servers', 'persist-key', 'mode', 'history', 'api-proxy'];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -1121,6 +1123,7 @@ class McpChat extends HTMLElement {
     this._systemPrompt = this.getAttribute('system-prompt') || DEFAULT_SYSTEM_PROMPT;
     this._persistKey = this.hasAttribute('persist-key');
     this._showHistory = this.hasAttribute('history');
+    this._apiProxy = this._normalizeApiProxy(this.getAttribute('api-proxy'));
     if (this._isMobileViewport() && this._mode === 'fullpage' && this._showHistory && !this._didSetMobileSidebarDefault) {
       this._sidebarVisible = false;
       this._didSetMobileSidebarDefault = true;
@@ -1139,6 +1142,7 @@ class McpChat extends HTMLElement {
     }
 
     this._hasKey = !!this._getApiKey();
+    this._hasApiAccess = this._usesApiProxy() || this._hasKey;
 
     if (forceServerRefresh || previousServerSignature !== this._serverConfigSignature) {
       await this._refreshServerConnections({ silent: true });
@@ -1188,6 +1192,7 @@ class McpChat extends HTMLElement {
   _handleApiKeyChange() {
     const hasKey = !!this._getApiKey();
     this._hasKey = hasKey;
+    this._hasApiAccess = this._usesApiProxy() || hasKey;
     if (!hasKey) {
       this._showKeyEditor = false;
       this._messages = [];
@@ -1350,7 +1355,7 @@ class McpChat extends HTMLElement {
           </div>
           <div class="header-actions">
             <button class="icon-btn" id="settings-toggle" title="Settings" aria-label="Settings">${SETTINGS_ICON}</button>
-            ${this._hasKey ? '<button class="icon-btn" id="reset-key" title="Reset API key">🔑</button>' : ''}
+            ${this._hasKey && !this._usesApiProxy() ? '<button class="icon-btn" id="reset-key" title="Reset API key">🔑</button>' : ''}
             <button class="icon-btn" id="close" title="Close">✕</button>
           </div>
         </div>
@@ -1400,9 +1405,9 @@ class McpChat extends HTMLElement {
             ` : ''}
             <div class="sidebar-footer">
               <div class="key-status" id="key-status">
-                <div class="key-dot ${this._hasKey ? '' : 'disconnected'}"></div>
-                <span class="key-label">${this._hasKey ? 'API key connected' : 'No API key'}</span>
-                ${this._hasKey ? '<span class="key-change-hint">change</span>' : ''}
+                <div class="key-dot ${this._hasApiAccess ? '' : 'disconnected'}"></div>
+                <span class="key-label">${this._usesApiProxy() ? 'API proxy enabled' : (this._hasKey ? 'API key connected' : 'No API key')}</span>
+                ${this._usesApiProxy() ? '<span class="key-change-hint">proxy</span>' : (this._hasKey ? '<span class="key-change-hint">change</span>' : '')}
               </div>
               <div class="sidebar-meta">
                 <span class="sidebar-meta-item">~${this._formatTokenCount(this._getEstimatedTokenUsage())} tokens</span>
@@ -1426,7 +1431,7 @@ class McpChat extends HTMLElement {
             ${this._tools.length > 0 ? `<span class="tools-badge">${this._tools.length} tools active</span>` : ''}
             <div class="header-actions ${this._tools.length > 0 ? '' : 'push-right'}">
               <button class="icon-btn" id="settings-toggle" title="Settings" aria-label="Settings">${SETTINGS_ICON}</button>
-              ${this._hasKey && !this._showHistory ? '<button class="icon-btn" id="reset-key" title="Reset API key">🔑</button>' : ''}
+              ${this._hasKey && !this._showHistory && !this._usesApiProxy() ? '<button class="icon-btn" id="reset-key" title="Reset API key">🔑</button>' : ''}
             </div>
           </div>
           ${this._renderChatBody()}
@@ -1437,12 +1442,12 @@ class McpChat extends HTMLElement {
   }
 
   _renderChatBody() {
-    if (!this._hasKey) {
+    if (!this._hasApiAccess) {
       return `
         <div class="key-form">
           <div class="key-icon">🔑</div>
           <div class="key-title">Enter API Key</div>
-          <div class="key-sub">Your Anthropic API key stays in your browser.<br/>Get one at <span class="key-link">console.anthropic.com</span></div>
+          <div class="key-sub">Your Anthropic API key stays in your browser unless you use an API proxy.<br/>Get one at <span class="key-link">console.anthropic.com</span></div>
           <input class="key-input" id="key-input" type="password" placeholder="sk-ant-..." />
           <button class="key-btn" id="key-btn">Connect</button>
         </div>
@@ -1524,7 +1529,7 @@ class McpChat extends HTMLElement {
         <div class="settings-header">
           <div>
             <div class="settings-title">Settings</div>
-            <div class="settings-subtitle">Manage MCP servers, API credentials, and package info.</div>
+            <div class="settings-subtitle">Manage MCP servers, API access, and package info.</div>
           </div>
           <button class="icon-btn" id="settings-close" title="Close settings">✕</button>
         </div>
@@ -1592,21 +1597,26 @@ class McpChat extends HTMLElement {
           </section>
 
           <section class="settings-section">
-            <div class="settings-section-title">API Key</div>
-            <div class="settings-row">
-              <div class="settings-value">${this._escapeHtml(this._maskApiKey(currentKey))}</div>
-              <button class="settings-action secondary" id="change-key-toggle">${this._showKeyEditor ? 'Cancel' : 'Change key'}</button>
-            </div>
-
-            ${this._showKeyEditor ? `
-              <div class="server-form">
-                <div class="settings-label">Anthropic API key</div>
-                <input class="settings-input" id="settings-api-key" type="password" placeholder="sk-ant-..." />
-                <div class="settings-buttons">
-                  <button class="settings-action" id="settings-save-key">Save key</button>
-                </div>
+            <div class="settings-section-title">${this._usesApiProxy() ? 'API Proxy' : 'API Key'}</div>
+            ${this._usesApiProxy() ? `
+              <div class="settings-value">${this._escapeHtml(this._apiProxy)}</div>
+              <div class="settings-note">Requests are sent through your proxy, so no Anthropic API key is required in the browser.</div>
+            ` : `
+              <div class="settings-row">
+                <div class="settings-value">${this._escapeHtml(this._maskApiKey(currentKey))}</div>
+                <button class="settings-action secondary" id="change-key-toggle">${this._showKeyEditor ? 'Cancel' : 'Change key'}</button>
               </div>
-            ` : ''}
+
+              ${this._showKeyEditor ? `
+                <div class="server-form">
+                  <div class="settings-label">Anthropic API key</div>
+                  <input class="settings-input" id="settings-api-key" type="password" placeholder="sk-ant-..." />
+                  <div class="settings-buttons">
+                    <button class="settings-action" id="settings-save-key">Save key</button>
+                  </div>
+                </div>
+              ` : ''}
+            `}
           </section>
 
           <section class="settings-section">
@@ -1686,6 +1696,11 @@ class McpChat extends HTMLElement {
     }
 
     if (target.id === 'key-status') {
+      if (this._usesApiProxy()) {
+        this._settingsOpen = true;
+        this._render();
+        return;
+      }
       this._openKeySettings();
       return;
     }
@@ -1818,6 +1833,7 @@ class McpChat extends HTMLElement {
     if (!val) return;
     APIKeyManager.set(val, this._persistKey);
     this._hasKey = true;
+    this._hasApiAccess = true;
     this._error = null;
     this._settingsError = null;
     this._showKeyEditor = false;
@@ -1855,7 +1871,8 @@ class McpChat extends HTMLElement {
           this._updateToolActivity(name);
         },
         onToolApproval: (request) => this._requestToolApproval(request),
-        onRetryCountdown: (seconds) => this._updateRetryCountdown(seconds)
+        onRetryCountdown: (seconds) => this._updateRetryCountdown(seconds),
+        baseUrl: this._apiProxy || undefined
       });
 
       const finalReply = reply || this._streamingAssistantText;
@@ -2180,9 +2197,20 @@ class McpChat extends HTMLElement {
     return APIKeyManager.get({ includeStorage: this._persistKey });
   }
 
+  _normalizeApiProxy(value) {
+    return typeof value === 'string' && value.trim()
+      ? value.trim().replace(/\/+$/, '')
+      : '';
+  }
+
+  _usesApiProxy() {
+    return Boolean(this._apiProxy);
+  }
+
   _resetKey() {
     APIKeyManager.clear();
     this._hasKey = false;
+    this._hasApiAccess = this._usesApiProxy();
     this._messages = [];
     this._clearTransientChatState();
     this._showKeyEditor = false;
@@ -2191,6 +2219,12 @@ class McpChat extends HTMLElement {
   }
 
   _openKeySettings() {
+    if (this._usesApiProxy()) {
+      this._settingsOpen = true;
+      this._render();
+      this._attachEvents();
+      return;
+    }
     this._settingsOpen = true;
     this._showKeyEditor = true;
     this._render();
