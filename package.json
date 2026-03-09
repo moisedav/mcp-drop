@@ -1,0 +1,18 @@
+{
+  "name": "mcp-drop",
+  "version": "0.1.0",
+  "description": "Drop an MCP-powered AI chat into any web app",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=packages/core",
+    "build": "npm run build --workspace=packages/core",
+    "bridge": "npm run start --workspace=packages/bridge",
+    "test": "npm run test --workspace=packages/core"
+  },
+  "keywords": ["mcp", "claude", "anthropic", "ai", "chat"],
+  "license": "MIT"
+}

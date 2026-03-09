@@ -1,0 +1,21 @@
+{
+  "name": "@mcp-drop/bridge",
+  "version": "0.1.0",
+  "description": "Local bridge server that connects @mcp-drop/core to any MCP server",
+  "main": "server.js",
+  "bin": {
+    "mcp-drop-bridge": "./server.js"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["mcp", "bridge", "anthropic", "claude", "ai", "mcp-drop"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "express": "^4.18.0",
+    "cors": "^2.8.5"
+  }
+}

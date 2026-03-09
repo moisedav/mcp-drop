@@ -1,0 +1,21 @@
+{
+  "name": "@mcp-drop/core",
+  "version": "0.1.0",
+  "description": "Drop an MCP-powered AI chat into any web app with a single HTML tag.",
+  "main": "dist/mcp-drop.umd.cjs",
+  "module": "dist/mcp-drop.js",
+  "type": "module",
+  "files": ["dist"],
+  "scripts": {
+    "dev": "vite demo",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": ["mcp", "claude", "anthropic", "web-component", "chat", "ai", "embed"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
