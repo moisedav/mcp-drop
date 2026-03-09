@@ -9,6 +9,10 @@
 [![demo](https://img.shields.io/badge/demo-live-green)](https://moisedav.github.io/mcp-drop)
 [![GitHub stars](https://img.shields.io/github/stars/moisedav/mcp-drop?style=social)](https://github.com/moisedav/mcp-drop)
 
+## Preview
+
+> Add a screenshot here once the GitHub Pages demo is live
+
 ## What is mcp-drop?
 
 **mcp-drop** is an open-source toolkit that lets you embed a fully functional AI chat interface — powered by Claude and MCP — into any web application with a single HTML tag.
@@ -48,6 +52,11 @@ No Claude Desktop. No Cursor. Just your app.
 |---|---|
 | [`@mcp-drop/core`](./packages/core) | Embeddable Web Component chat UI |
 | [`@mcp-drop/bridge`](./packages/bridge) | Local bridge server for MCP connections |
+
+## Prerequisites
+
+- **Anthropic API key** — Get one at [console.anthropic.com](https://console.anthropic.com) (not Claude Pro — you need an API key)
+- **Node.js 18+** — Required to run `@mcp-drop/bridge` locally
 
 ## Quick Start
 
@@ -216,3 +225,7 @@ npx @mcp-drop/bridge \
 ## License
 
 MIT © mcp-drop
+
+Built by [@moise](https://x.com/moisegdesign)
+
+**Keywords:** mcp, model-context-protocol, claude, anthropic, ai-chat, web-component, copilot, llm, tool-use, embeddable
