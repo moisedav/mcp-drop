@@ -227,5 +227,3 @@ npx @mcp-drop/bridge \
 MIT © mcp-drop
 
 Built by [@moise](https://x.com/moisegdesign)
-
-**Keywords:** mcp, model-context-protocol, claude, anthropic, ai-chat, web-component, copilot, llm, tool-use, embeddable
